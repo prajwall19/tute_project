@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CityFix: spot it, report it, watch it get fixed</title>
+<link rel="icon" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Public+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="animations.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<header class="top">
+  <a class="brand" href="#home"><i aria-hidden="true"></i>CityFix</a>
+  <nav aria-label="Main"><a href="#report" data-r="report">Report</a><a href="#mine" data-r="mine">My reports</a><a href="#feed" data-r="feed">City feed</a></nav>
+  <span id="auth" class="authslot"></span>
+</header>
+<p class="banner" role="note">Connected to Firebase: reports and accounts are saved in Cloud Firestore &amp; Firebase Auth.</p>
+<main id="main" tabindex="-1"></main>
+<footer>CityFix is an independent community project. It is not run by, or affiliated with, any government body.</footer>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Log in or register | CityFix</title>
+<link rel="icon" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Public+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="auth.css">
+<link rel="stylesheet" href="animations.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<header class="top">
+  <a class="brand" href="landing.html"><img src="logo.svg" alt="" width="28" height="28">CityFix</a>
+  <nav aria-label="Main"><a href="index.html#feed">City feed</a></nav>
+</header>
+<p class="banner" role="note">Connected to Firebase: your account is secured with Firebase Authentication.</p>
+<main id="main" tabindex="-1" class="authgrid">
+  <aside class="pitch" aria-hidden="true">
+    <h2>Say it once.<br>Watch it move.</h2>
+    <p>An account lets you follow every report you send, from submitted to resolved.</p>
+    <svg viewBox="0 0 200 40"><path d="M0 28h200" stroke="#ffc933" stroke-width="4" stroke-dasharray="20 14"/></svg>
+  </aside>
+  <section class="panel" aria-labelledby="ptitle">
+    <div id="signed" hidden></div>
+    <div id="forms">
+      <h1 id="ptitle">Welcome to CityFix</h1>
+      <div class="tabs" role="tablist" aria-label="Account">
+        <button role="tab" id="t-login" aria-selected="true" aria-controls="f-login">Log in</button>
+        <button role="tab" id="t-register" aria-selected="false" aria-controls="f-register" tabindex="-1">Register</button>
+      </div>
+
+      <form id="f-login" role="tabpanel" aria-labelledby="t-login" novalidate>
+        <label for="l-email">Email</label>
+        <input id="l-email" type="email" autocomplete="email" inputmode="email">
+        <p class="err" id="e-l-email" hidden></p>
+        <label for="l-pw">Password</label>
+        <div class="pw"><input id="l-pw" type="password" autocomplete="current-password"><button type="button" class="show" data-for="l-pw" aria-pressed="false">Show</button></div>
+        <p class="err" id="e-l-pw" hidden></p>
+        <p class="err" id="e-l" role="alert" hidden></p>
+        <button class="btn btn-primary" type="submit">Log in</button>
+      </form>
+
+      <form id="f-register" role="tabpanel" aria-labelledby="t-register" hidden novalidate>
+        <label for="r-name">Full name</label>
+        <input id="r-name" autocomplete="name">
+        <p class="err" id="e-r-name" hidden></p>
+        <label for="r-email">Email</label>
+        <input id="r-email" type="email" autocomplete="email" inputmode="email">
+        <p class="err" id="e-r-email" hidden></p>
+        <label for="r-pw">Password <span class="opt">(at least 8 characters)</span></label>
+        <div class="pw"><input id="r-pw" type="password" autocomplete="new-password"><button type="button" class="show" data-for="r-pw" aria-pressed="false">Show</button></div>
+        <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+        <p class="err" id="e-r-pw" hidden></p>
+        <p class="err" id="e-r" role="alert" hidden></p>
+        <button class="btn btn-primary" type="submit">Create account</button>
+      </form>
+    </div>
+  </section>
+</main>
+<footer>CityFix is an independent community project. It is not run by, or affiliated with, any government body.</footer>
+</div>
+<script type="module" src="auth.js"></script>
+</body>
+</html>

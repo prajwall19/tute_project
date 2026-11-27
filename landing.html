@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CityFix: report city problems and follow them until they’re fixed</title>
+<meta name="description" content="CityFix lets citizens report potholes, garbage, broken lights and leaks, then track each report from submitted to resolved.">
+<link rel="icon" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Public+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="landing.css">
+<link rel="stylesheet" href="animations.css">
+</head>
+
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<header class="top">
+  <a class="brand" href="landing.html"><img src="logo.svg" alt="" width="28" height="28">CityFix</a>
+  <nav aria-label="Main"><a href="#how">How it works</a><a href="#why">Why CityFix</a><a href="auth.html">Log in</a><a class="btn btn-primary nav-cta" href="index.html#report">Open the app</a></nav>
+</header>
+<main id="main" tabindex="-1">
+  <section class="lhero">
+    <div>
+      <h1>Every city problem deserves a <em>reply</em>.</h1>
+      <p>Report a pothole, a pile of garbage or a dead streetlight in under a minute. Then follow your report from submitted to resolved, instead of wondering if anyone saw it.</p>
+      <p style="margin-top:1.2rem"><a class="btn btn-primary" href="index.html#report">Report an issue</a> <a class="btn" href="index.html#feed">See city reports</a></p>
+    </div>
+    <svg class="road" viewBox="0 0 400 260" role="img" aria-label="Animation: a pothole on a road is reported, then patched and marked fixed">
+      <rect width="400" height="260" fill="#0b2a36"/>
+      <rect y="120" width="400" height="120" fill="#17323d"/>
+      <path d="M0 180h400" stroke="#ffc933" stroke-width="4" stroke-dasharray="24 18"/>
+      <ellipse class="pothole" cx="200" cy="150" rx="46" ry="16" fill="#050f14"/>
+      <ellipse class="patch" cx="200" cy="150" rx="46" ry="16" fill="#26444f" stroke="#ffc933" stroke-width="3"/>
+      <g class="tag-r"><rect x="132" y="70" width="136" height="30" rx="15" fill="#ffc933"/><text x="200" y="90" text-anchor="middle" fill="#2a2000">Reported by a citizen</text></g>
+      <g class="tag-f"><rect x="150" y="70" width="100" height="30" rx="15" fill="#5cc6cb"/><text x="200" y="90" text-anchor="middle" fill="#06282a">Fixed</text></g>
+    </svg>
+  </section>
+
+  <section class="blk" id="why">
+    <h2>Reporting is easy. Hearing back is the hard part.</h2>
+    <p>Many people already notice problems in their street. What’s missing is a simple way to report one with the exact spot and a photo, and a way to see what happened next. CityFix focuses on both.</p>
+  </section>
+
+  <section class="blk" id="how">
+    <h2>How it works</h2>
+    <ol class="steps3">
+      <li><h3>Snap and describe</h3><p>Choose the type of problem, add a photo, and share your location or type the landmark.</p></li>
+      <li><h3>Send it</h3><p>Your report goes into the city feed with the details someone needs to find it.</p></li>
+      <li><h3>Follow it</h3><p>Watch the progress bar move from submitted to acknowledged, in progress, and resolved.</p></li>
+    </ol>
+  </section>
+
+  <section class="blk">
+    <h2>What’s in CityFix</h2>
+    <div class="feat">
+      <div><h3>Quick reports</h3><p>Six common problem types, a photo, and one-tap location.</p></div>
+      <div><h3>Progress tracking</h3><p>A clear four-step status on every report.</p></div>
+      <div><h3>Public city feed</h3><p>See what others reported and filter open or resolved issues.</p></div>
+      <div><h3>Privacy-minded</h3><p>Photo tips remind people to avoid faces and number plates.</p></div>
+      <div><h3>Map view <span class="soon">Planned</span></h3><p>See reports as pins around your ward.</p></div>
+      <div><h3>Ward leaderboard <span class="soon">Planned</span></h3><p>Recognise the neighbourhoods that get problems fixed.</p></div>
+    </div>
+  </section>
+
+  <section class="final">
+    <h2>See a problem? Say it once, then watch it move.</h2>
+    <p>CityFix is a Buildathon prototype. The app currently runs on clearly labelled demo data.</p>
+    <a class="btn" href="index.html#report">Open the app</a>
+  </section>
+</main>
+<footer>CityFix is an independent community project. It is not run by, or affiliated with, any government body.</footer>
+</div>
+<script src="landing.js"></script>
+</body>
+</html>

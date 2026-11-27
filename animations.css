@@ -1,0 +1,525 @@
+/* ===== ANIMATIONS.CSS – Shared premium animation utilities for CityFix ===== */
+
+/* ---------- CSS Custom Properties for Animations ---------- */
+:root {
+  --ease-out-expo: cubic-bezier(.16, 1, .3, 1);
+  --ease-out-quart: cubic-bezier(.25, 1, .5, 1);
+  --ease-spring: cubic-bezier(.22, .8, .22, 1);
+  --ease-bounce: cubic-bezier(.34, 1.56, .64, 1);
+  --duration-fast: .2s;
+  --duration-normal: .35s;
+  --duration-slow: .6s;
+}
+
+/* ---------- Page Transition ---------- */
+#main {
+  animation: pageIn .45s var(--ease-spring) both;
+}
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* ---------- Enhanced Button Interactions ---------- */
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s var(--ease-spring),
+              background .25s ease,
+              box-shadow .25s ease,
+              border-color .25s ease;
+}
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+              rgba(255, 255, 255, .3) 0%,
+              transparent 60%);
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity .4s, transform .5s var(--ease-out-expo);
+  pointer-events: none;
+}
+.btn:active::after {
+  opacity: 1;
+  transform: scale(2.5);
+  transition: none;
+}
+.btn-primary {
+  box-shadow: 0 2px 8px rgba(255, 201, 51, 0);
+  transition: transform .2s var(--ease-spring),
+              background .25s ease,
+              box-shadow .3s ease,
+              border-color .25s ease;
+}
+.btn-primary:hover {
+  box-shadow: 0 6px 24px rgba(255, 201, 51, .3);
+}
+.btn-primary:active {
+  transform: translateY(0) scale(.97);
+}
+
+/* ---------- Navigation Hover Indicator ---------- */
+nav a {
+  position: relative;
+  transition: background .25s var(--ease-spring),
+              color .25s ease;
+}
+nav a::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--signal);
+  border-radius: 1px;
+  transition: width .3s var(--ease-spring),
+              left .3s var(--ease-spring);
+}
+nav a:hover::after {
+  width: 60%;
+  left: 20%;
+}
+nav a[aria-current=page]::after {
+  display: none;
+}
+
+/* ---------- Card Enhancements ---------- */
+.card {
+  position: relative;
+  transition: transform .3s var(--ease-spring),
+              box-shadow .3s var(--ease-spring),
+              border-color .3s ease;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 1rem 1rem 0 0;
+  background: linear-gradient(90deg, var(--teal), var(--signal));
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .15);
+  border-color: var(--teal);
+}
+.card:hover::before {
+  opacity: 1;
+}
+
+/* ---------- Status Badge Pulse ---------- */
+.badge.in_progress {
+  position: relative;
+}
+.badge.in_progress::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: .4rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal-ink);
+  transform: translateY(-50%);
+  animation: statusPulse 2s ease-in-out infinite;
+}
+.badge.in_progress {
+  padding-left: 1.2rem;
+}
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+  50% { opacity: .4; transform: translateY(-50%) scale(.7); }
+}
+
+.badge.submitted {
+  position: relative;
+}
+
+/* ---------- Progress Timeline Animation ---------- */
+.steps li::after {
+  transition: width .7s var(--ease-out-expo);
+  transition-delay: calc(var(--k) * 180ms + 300ms);
+}
+
+/* ---------- Enhanced Form Inputs ---------- */
+input, select, textarea {
+  transition: border-color .25s ease,
+              box-shadow .25s ease,
+              transform .15s var(--ease-spring);
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(92, 198, 203, .15);
+}
+input:focus, textarea:focus {
+  transform: translateY(-1px);
+}
+
+/* ---------- Validation Error Animation ---------- */
+.err {
+  transition: opacity .3s ease, transform .3s var(--ease-spring);
+}
+.err[hidden] {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+}
+.err:not([hidden]) {
+  animation: errorSlide .35s var(--ease-spring) both;
+}
+@keyframes errorSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Drag & Drop Upload Zone ---------- */
+.upload-zone {
+  position: relative;
+  border: 2px dashed var(--line);
+  border-radius: .9rem;
+  padding: 1.6rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .3s ease,
+              background .3s ease,
+              transform .2s var(--ease-spring);
+  background: var(--panel);
+}
+.upload-zone:hover,
+.upload-zone.drag-over {
+  border-color: var(--teal);
+  background: rgba(92, 198, 203, .06);
+  transform: scale(1.01);
+}
+.upload-zone.drag-over {
+  border-style: solid;
+  box-shadow: 0 0 0 3px rgba(92, 198, 203, .15);
+}
+.upload-zone-icon {
+  display: block;
+  margin: 0 auto .6rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  opacity: .5;
+  transition: opacity .3s, transform .3s var(--ease-spring);
+}
+.upload-zone:hover .upload-zone-icon,
+.upload-zone.drag-over .upload-zone-icon {
+  opacity: .8;
+  transform: translateY(-2px);
+}
+.upload-zone-text {
+  color: var(--muted);
+  font-size: .92rem;
+  margin: 0;
+}
+.upload-zone-text strong {
+  color: var(--teal);
+}
+.upload-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  min-height: auto;
+  border: none;
+  padding: 0;
+}
+
+/* ---------- Image Preview Animation ---------- */
+.preview {
+  animation: previewIn .4s var(--ease-spring) both;
+}
+@keyframes previewIn {
+  from {
+    opacity: 0;
+    transform: scale(.92) translateY(8px);
+  }
+}
+
+/* ---------- Success Celebration ---------- */
+.success {
+  animation: successIn .5s var(--ease-spring) both;
+}
+@keyframes successIn {
+  from {
+    opacity: 0;
+    transform: scale(.95) translateY(16px);
+  }
+}
+
+/* Confetti particles (created by JS) */
+.confetti-piece {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 100;
+  animation: confettiFall var(--fall-duration, 1.5s) var(--ease-out-quart) forwards;
+}
+@keyframes confettiFall {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift-x, 20px), var(--drift-y, 300px)) rotate(var(--spin, 400deg));
+  }
+}
+
+/* ---------- Loading Skeleton Enhancement ---------- */
+.skel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, .05) 50%,
+    transparent 100%);
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ---------- Filter Chip Transition ---------- */
+.chip {
+  transition: background .25s var(--ease-spring),
+              border-color .25s var(--ease-spring),
+              color .25s ease,
+              transform .15s var(--ease-spring);
+}
+.chip:hover {
+  transform: translateY(-1px);
+}
+.chip:active {
+  transform: translateY(0) scale(.97);
+}
+.chip[aria-pressed=true] {
+  animation: chipSelect .3s var(--ease-bounce) both;
+}
+@keyframes chipSelect {
+  from { transform: scale(.95); }
+  to   { transform: scale(1); }
+}
+
+/* ---------- List Transition ---------- */
+.list {
+  animation: listIn .3s var(--ease-spring) both;
+}
+@keyframes listIn {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Spinner Enhancement ---------- */
+.spin {
+  border-width: 2.5px;
+  border-color: rgba(0, 0, 0, .15);
+  border-top-color: var(--signal-ink);
+}
+
+/* ---------- Submission Loading Overlay ---------- */
+.submit-loading {
+  position: relative;
+}
+.submit-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--bg-rgb, 242, 245, 243), .6);
+  backdrop-filter: blur(2px);
+  border-radius: 1rem;
+  z-index: 5;
+  animation: fadeIn .3s ease both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+}
+
+/* ---------- Brand Icon Animation ---------- */
+.brand {
+  transition: transform .2s var(--ease-spring);
+}
+.brand:hover {
+  transform: scale(1.03);
+}
+.brand i, .brand img {
+  transition: transform .3s var(--ease-spring);
+}
+.brand:hover i, .brand:hover img {
+  transform: rotate(-6deg) scale(1.1);
+}
+
+/* ---------- Banner Slide In ---------- */
+.banner {
+  animation: bannerIn .5s .3s var(--ease-spring) both;
+}
+@keyframes bannerIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- Hero Section Enhancements ---------- */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at 30% 20%,
+    rgba(92, 198, 203, .08) 0%,
+    transparent 50%),
+    radial-gradient(ellipse at 70% 80%,
+    rgba(255, 201, 51, .05) 0%,
+    transparent 50%);
+  pointer-events: none;
+  animation: heroGlow 12s ease-in-out infinite;
+}
+@keyframes heroGlow {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(3%, 2%); }
+  66% { transform: translate(-2%, -1%); }
+}
+
+/* ---------- Footer Enhancement ---------- */
+footer {
+  transition: color .2s;
+  position: relative;
+}
+footer::before {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 2px;
+  background: var(--line);
+  margin-bottom: 1.2rem;
+  border-radius: 1px;
+}
+
+/* ---------- Scroll-triggered animation for dashboard cards ---------- */
+.card.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.card.reveal.visible {
+  opacity: 1;
+  transform: none;
+  transition: opacity .5s var(--ease-spring),
+              transform .5s var(--ease-spring);
+  transition-delay: calc(var(--i) * 70ms);
+}
+
+/* ---------- Auth Enhancements (shared with auth page) ---------- */
+
+/* Tab transition improvements */
+.tabs button {
+  transition: background .3s var(--ease-spring),
+              color .3s ease,
+              transform .15s var(--ease-spring);
+}
+.tabs button:hover:not([aria-selected=true]) {
+  background: rgba(255, 201, 51, .12);
+}
+.tabs button:active {
+  transform: scale(.97);
+}
+.tabs button[aria-selected=true] {
+  animation: tabPop .3s var(--ease-bounce) both;
+}
+@keyframes tabPop {
+  from { transform: scale(.95); }
+  to   { transform: scale(1); }
+}
+
+/* Password strength meter animation */
+.meter i {
+  transition: width .4s var(--ease-spring),
+              background .4s ease;
+  border-radius: 3px;
+}
+
+/* Show/Hide password button */
+.show {
+  transition: background .2s, transform .15s var(--ease-spring);
+}
+.show:hover {
+  background: var(--signal);
+  color: var(--signal-ink);
+}
+.show:active {
+  transform: translateY(-50%) scale(.95);
+}
+
+/* Auth success animation */
+.signed {
+  animation: signedIn .5s var(--ease-spring) both;
+}
+@keyframes signedIn {
+  from {
+    opacity: 0;
+    transform: scale(.96) translateY(12px);
+  }
+}
+
+/* Panel entrance */
+.panel {
+  animation: panelUp .5s var(--ease-spring) both;
+}
+@keyframes panelUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+/* ---------- Reduced Motion – disable all custom animations ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: .001ms !important;
+  }
+  .confetti-piece { display: none !important; }
+  .particles-canvas { display: none !important; }
+  #main { animation: none; }
+  .card, .blk, .final, .lhero h1, .lhero > div > p, .road,
+  .banner, .success, .signed, .panel {
+    opacity: 1;
+    transform: none;
+  }
+}

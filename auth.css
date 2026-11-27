@@ -1,0 +1,23 @@
+.authgrid{display:grid;gap:1rem;padding-bottom:1rem;outline:none}
+.pitch{border-radius:1.2rem;background:linear-gradient(160deg,#0b2a36,#1c5e6a);color:#fff;padding:1.6rem 1.4rem;display:none}
+.pitch h2{font-size:2.2rem;line-height:1.05;margin:0 0 .8rem;font-weight:800}
+.pitch p{color:#d3e6ea;margin:0 0 1.2rem}
+.pitch svg{width:100%;height:2.5rem}
+.pitch svg path{stroke-dashoffset:0;animation:flow 1.6s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-34}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:1.2rem;padding:1.4rem 1.3rem;animation:up .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(18px)}}
+.panel h1{font-size:1.7rem;margin:0 0 .8rem}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;padding:.25rem;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.tabs button{min-height:44px;border:0;border-radius:99px;background:transparent;color:var(--ink);font:600 1rem "Public Sans",system-ui,sans-serif;cursor:pointer;transition:background .25s}
+.tabs button[aria-selected=true]{background:var(--signal);color:var(--signal-ink)}
+form[role=tabpanel]{margin-top:.6rem;animation:slide .35s ease both}
+@keyframes slide{from{opacity:0;transform:translateX(14px)}}
+.pw{position:relative}
+.pw input{padding-right:4.6rem}
+.show{position:absolute;right:.3rem;top:50%;transform:translateY(-50%);min-height:38px;padding:0 .7rem;border:0;border-radius:99px;background:var(--line);color:var(--ink);font:600 .85rem "Public Sans",system-ui,sans-serif;cursor:pointer}
+.meter{height:5px;border-radius:3px;background:var(--line);margin-top:.35rem;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--err);transition:width .3s,background .3s}
+.signed{text-align:center;padding:1rem 0}
+.signed .btn{margin:.3rem .15rem 0}
+@media (min-width:780px){.authgrid{grid-template-columns:1fr 1.1fr;align-items:stretch}.pitch{display:flex;flex-direction:column;justify-content:center}}
