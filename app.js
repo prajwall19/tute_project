@@ -17,7 +17,7 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
-import { auth, db, storage } from "./firebase-config.js";
+import { auth, db, storage, USE_FIREBASE_STORAGE } from "./firebase-config.js";
 
 const CATS={pothole:"Pothole or damaged road",garbage:"Garbage or waste",streetlight:"Broken streetlight",water:"Water supply or leak",drainage:"Drainage or flooding",other:"Something else"};
 const STAT=["submitted","acknowledged","in_progress","resolved"];
@@ -25,6 +25,95 @@ const LABEL={submitted:"Submitted",acknowledged:"Acknowledged",in_progress:"In p
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_PICK_SIZE = 15 * 1024 * 1024;
+
+async function compressImage(file) {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    throw new Error("Only JPG, JPEG, PNG, and WebP images are allowed.");
+  }
+  if (file.size > MAX_PICK_SIZE) {
+    throw new Error("That photo is too large. Choose one under 15 MB.");
+  }
+  if (file.size <= 280 * 1024 && file.type !== "image/png") return file;
+
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    if (file.size > MAX_IMAGE_SIZE) throw new Error("Image file size must be 5 MB or less.");
+    return file;
+  }
+
+  const maxEdge = 1280;
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { alpha: false });
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  if (bitmap.close) bitmap.close();
+
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.72));
+  if (!blob) {
+    if (file.size > MAX_IMAGE_SIZE) throw new Error("Image file size must be 5 MB or less.");
+    return file;
+  }
+  if (blob.size > MAX_IMAGE_SIZE) {
+    throw new Error("That photo is still too large after resizing. Try another picture.");
+  }
+  if (blob.size >= file.size && file.size <= MAX_IMAGE_SIZE && (file.type === "image/jpeg" || file.type === "image/jpg")) {
+    return file;
+  }
+  const base = file.name.replace(/\.[^.]+$/, "") || "photo";
+  return new File([blob], base + ".jpg", { type: "image/jpeg", lastModified: Date.now() });
+}
+
+async function fileToCompactDataUrl(file) {
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Could not read image file."));
+      reader.readAsDataURL(file);
+    });
+  }
+  const maxEdge = 800;
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { alpha: false });
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  if (bitmap.close) bitmap.close();
+  return canvas.toDataURL("image/jpeg", 0.65);
+}
+
+async function uploadReportPhoto(file) {
+  if (!USE_FIREBASE_STORAGE) {
+    return fileToCompactDataUrl(file);
+  }
+  const extMap = { "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png", "image/webp": "webp" };
+  const ext = extMap[file.type] || "jpg";
+  const storageRef = ref(storage, `reports/${currentUser.uid}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`);
+  try {
+    const uploadPromise = uploadBytes(storageRef, file, { contentType: file.type }).then((snap) =>
+      getDownloadURL(snap.ref)
+    );
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Storage upload timed out")), 20000)
+    );
+    return await Promise.race([uploadPromise, timeoutPromise]);
+  } catch (_err) {
+    return fileToCompactDataUrl(file);
+  }
+}
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $=s=>document.querySelector(s);
@@ -63,40 +152,26 @@ const api = {
     if (!currentUser) throw Object.assign(new Error("Authentication required"), { code: "unauthenticated" });
     const q = query(
       collection(db, "reports"),
-      where("userId", "==", currentUser.uid)
+      where("userId", "==", currentUser.uid),
+      orderBy("createdAt", "desc"),
+      limit(50)
     );
     const snap = await getDocs(q);
-    return snap.docs
-      .map(mapReportDoc)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return snap.docs.map(mapReportDoc);
   },
 
-  async create({ title, category, description, locationAddress, latitude, longitude, photoFile }) {
+  async create({ title, category, description, locationAddress, latitude, longitude, imageUrl = null }) {
     if (!currentUser) throw Object.assign(new Error("Please log in to submit a report."), { code: "unauthenticated" });
 
-    let imageUrl = null;
-    if (photoFile) {
-      if (!ALLOWED_IMAGE_TYPES.includes(photoFile.type)) {
-        throw new Error("Only JPG, JPEG, PNG, and WebP images are allowed.");
-      }
-      if (photoFile.size > MAX_IMAGE_SIZE) {
-        throw new Error("Image file size must be 5 MB or less.");
-      }
-      const extMap = { "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png", "image/webp": "webp" };
-      const ext = extMap[photoFile.type] || "jpg";
-      const storageRef = ref(storage, `reports/${currentUser.uid}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`);
-      const snapshot = await uploadBytes(storageRef, photoFile, { contentType: photoFile.type });
-      imageUrl = await getDownloadURL(snapshot.ref);
-    }
-
-    const docRef = await addDoc(collection(db, "reports"), {
+    const docData = {
       title,
       category,
       description: description || "",
       locationAddress: locationAddress || "Pinned by GPS",
       latitude: typeof latitude === "number" ? latitude : null,
       longitude: typeof longitude === "number" ? longitude : null,
-      imageUrl,
+      imageUrl: typeof imageUrl === "string" && imageUrl.startsWith("data:") ? null : imageUrl,
+      imageDataUrl: typeof imageUrl === "string" && imageUrl.startsWith("data:") ? imageUrl : null,
       userId: currentUser.uid,
       userName: currentUser.displayName || currentUser.email || "Citizen",
       status: "submitted",
@@ -111,7 +186,21 @@ const api = {
       isDemo: false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
+    };
+
+    // Guard: strip large data URLs that would exceed Firestore's 1 MiB doc limit
+    if (docData.imageDataUrl && docData.imageDataUrl.length > 900_000) {
+      console.warn("Image data URL too large for Firestore, discarding.");
+      docData.imageDataUrl = null;
+    }
+
+    const savePromise = addDoc(collection(db, "reports"), docData);
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Saving to Firestore timed out. Check that Firestore Database is created and rules are published in Firebase Console.")), 25000)
+    );
+
+    const docRef = await Promise.race([savePromise, timeoutPromise]);
 
     return { id: docRef.id };
   },
@@ -140,9 +229,8 @@ function confetti(x, y, count) {
   }
 }
 
-function ripple(e) {
-  if (prefersReduced) return;
-  const btn = e.currentTarget;
+function ripple(e, btn) {
+  if (prefersReduced || !btn) return;
   const rect = btn.getBoundingClientRect();
   const x = ((e.clientX - rect.left) / rect.width) * 100;
   const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -153,7 +241,7 @@ function ripple(e) {
 /* Attach ripple to all buttons via delegation */
 document.addEventListener("mousedown", function(e) {
   const btn = e.target.closest(".btn");
-  if (btn) ripple(e);
+  if (btn) ripple(e, btn);
 }, { passive: true });
 
 function hero(){return `<section class="hero" aria-labelledby="h">
@@ -186,7 +274,7 @@ function card(i,n){
  return `<li class="card" style="--i:${n}"><div class="head"><h3>${esc(i.title)}</h3><span class="badge ${i.status}">${LABEL[i.status]}</span></div>
  <p class="meta">${esc(CATS[i.category]||i.category)}. ${esc(loc)}. ${new Date(dateVal).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</p>
  ${i.description?`<p>${esc(i.description)}</p>`:""}
- ${i.imageUrl?`<img class="preview" src="${esc(i.imageUrl)}" alt="Photo for ${esc(i.title)}" loading="lazy">`:""}
+ ${(i.imageUrl||i.imageDataUrl)?`<img class="preview" src="${esc(i.imageUrl||i.imageDataUrl)}" alt="Photo for ${esc(i.title)}" loading="lazy">`:""}
  <ol class="steps" aria-label="Progress: ${LABEL[i.status]}">${STAT.map((s,k)=>`<li style="--k:${k}" data-on="${k<=step?1:0}">${LABEL[s]}</li>`).join("")}</ol>
  ${i.isDemo||i.demo?`<p class="demo">Demo data</p>`:""}</li>`}
 
@@ -237,7 +325,7 @@ function reportView(){
    <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="pn">
  </div>
  <img id="pv" class="preview" alt="Preview of the photo you chose" hidden>
- <p class="hint" id="pn">Avoid capturing faces and vehicle number plates. Retake or crop if they appear. Max 5 MB (JPG, PNG, WebP).</p>
+ <p class="hint" id="pn">Avoid capturing faces and vehicle number plates. Retake or crop if they appear. Photos are resized before they upload (JPG, PNG, WebP).</p>
  <p class="err" id="e-sub" role="alert" hidden></p>
  <button class="btn btn-primary" id="go" type="submit">Send report</button></form></section>`;
 
@@ -268,12 +356,28 @@ function reportView(){
  });
 
  let coords=null;
+ let photoJob=null;
+ const ensurePhotoJob=file=>{
+  if(photoJob&&photoJob.file===file)return photoJob.promise;
+  const promise=(async()=>{
+   const prepared=await compressImage(file);
+   return uploadReportPhoto(prepared);
+  })();
+  promise.catch(()=>{if(photoJob&&photoJob.promise===promise)photoJob=null});
+  photoJob={file,promise};
+  return promise;
+ };
  $("#gps").onclick=()=>{const g=$("#geo");
   if(!navigator.geolocation){g.textContent="Your browser can't share location. Type the address instead.";return}
   g.textContent="Finding you…";
   navigator.geolocation.getCurrentPosition(p=>{coords=[p.coords.latitude,p.coords.longitude];g.textContent="Location added. You can still describe the spot."},()=>{g.textContent="We couldn't get your location. Allow access or type the address."},{timeout:10000})};
 
- $("#photo").onchange=e=>{const f=e.target.files[0],pv=$("#pv");if(!f){pv.hidden=true;return}pv.src=URL.createObjectURL(f);pv.hidden=false};
+ $("#photo").onchange=e=>{
+  const f=e.target.files[0],pv=$("#pv");
+  if(!f){photoJob=null;pv.hidden=true;return}
+  pv.src=URL.createObjectURL(f);pv.hidden=false;
+  ensurePhotoJob(f).catch(()=>{});
+ };
  const mark=(id,eid,msg)=>{const el=$("#"+id),er=$("#"+eid);if(msg){el.setAttribute("aria-invalid","true");el.setAttribute("aria-describedby",eid);er.textContent=msg;er.hidden=false}else{el.removeAttribute("aria-invalid");er.hidden=true}};
 
  $("#f").onsubmit=async e=>{e.preventDefault();
@@ -281,12 +385,19 @@ function reportView(){
   const bad1=t.length<5?"Add a short title, at least 5 characters.":"",bad2=(!l&&!coords)?"Tell us where this is, or use your location.":"";
   mark("title","e-title",bad1);mark("loc","e-loc",bad2);
   if(bad1||bad2){$(bad1?"#title":"#loc").focus();return}
-  const b=$("#go");b.disabled=true;b.innerHTML='<span class="spin"></span> Sending…';$("#e-sub").hidden=true;
+  const b=$("#go");b.disabled=true;$("#e-sub").hidden=true;
+  const photoFile=$("#photo").files[0]||null;
+  b.innerHTML=photoFile?'<span class="spin"></span> Uploading photo…':'<span class="spin"></span> Saving report…';
 
   const form = $("#f");
   form.classList.add("submit-loading");
 
   try{
+   let imageUrl=null;
+   if(photoFile){
+    imageUrl=await ensurePhotoJob(photoFile);
+    b.innerHTML='<span class="spin"></span> Saving report…';
+   }
    await api.create({
     title: t,
     category: $("#cat").value,
@@ -294,7 +405,7 @@ function reportView(){
     locationAddress: l || "Pinned by GPS",
     latitude: coords ? coords[0] : null,
     longitude: coords ? coords[1] : null,
-    photoFile: $("#photo").files[0] || null,
+    imageUrl,
    });
    main.innerHTML=`<section class="success" role="status"><svg class="check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28"/><path d="M20 33l8 8 17-18"/></svg><h2>Report received</h2><p class="lede">Follow its progress under My reports.</p><a class="btn btn-primary" href="#mine">See my reports</a> <a class="btn" href="#report" id="again">Report another</a></section>`;
 

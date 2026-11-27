@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { initializeFirestore } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -16,8 +16,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db = initializeFirestore(app, {
+  experimentalAutoDetectLongPolling: true,
+});
 const storage = getStorage(app);
+storage.maxUploadRetryTime = 4000;
+storage.maxOperationRetryTime = 4000;
 
 let analytics = null;
 isSupported()
@@ -26,4 +30,7 @@ isSupported()
   })
   .catch(() => {});
 
-export { app, auth, db, storage, analytics };
+// Set to true after enabling Firebase Storage + CORS in Firebase Console
+const USE_FIREBASE_STORAGE = false;
+
+export { app, auth, db, storage, analytics, USE_FIREBASE_STORAGE };

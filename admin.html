@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin Panel | CityFix</title>
+<link rel="icon" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Public+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="animations.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<header class="top">
+  <a class="brand" href="index.html#home"><img src="logo.svg" alt="" width="28" height="28">CityFix <span class="admin-badge">Admin</span></a>
+  <nav aria-label="Main"><a href="index.html#feed">City feed</a></nav>
+  <span id="auth" class="authslot"></span>
+</header>
+<p class="banner banner-admin" role="note">🔒 Admin Panel — Only authorised accounts can access this page.</p>
+<main id="main" tabindex="-1"></main>
+<footer>CityFix is an independent community project. It is not run by, or affiliated with, any government body.</footer>
+</div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>

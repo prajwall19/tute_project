@@ -36,7 +36,14 @@ function authConfetti(x, y, count) {
   }
 }
 
-function dest() {
+const ADMIN_EMAIL = "prajwal@gmail.com";
+
+function isAdminEmail(email) {
+  return typeof email === "string" && email.trim().toLowerCase() === ADMIN_EMAIL;
+}
+
+function dest(email) {
+  if (isAdminEmail(email)) return "admin.html";
   const n = new URLSearchParams(location.search).get("next") || "";
   return /^[\w-]+\.html(#\w+)?$/.test(n) ? n : "index.html#feed";
 }
@@ -122,18 +129,19 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;"
 
 let justSignedIn = false;
 
-function done(displayName) {
+function done(displayName, email) {
   justSignedIn = true;
   const firstName = (displayName || "there").split(" ")[0];
+  const target = dest(email);
   $("#forms").hidden = true;
   const s = $("#signed");
   s.hidden = false;
   s.className = "signed";
   s.setAttribute("role", "status");
-  s.innerHTML = '<svg class="check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28"/><path d="M20 33l8 8 17-18"/></svg><h1>You’re in, ' + esc(firstName) + '</h1><p class="lede">Taking you to CityFix…</p>';
+  s.innerHTML = '<svg class="check" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28"/><path d="M20 33l8 8 17-18"/></svg><h1>You’re in, ' + esc(firstName) + '</h1><p class="lede">' + (isAdminEmail(email) ? 'Taking you to Admin Panel…' : 'Taking you to CityFix…') + '</p>';
   const rect = s.getBoundingClientRect();
   authConfetti(rect.left + rect.width / 2, rect.top + 40, 24);
-  setTimeout(() => { location.href = dest(); }, 1100);
+  setTimeout(() => { location.href = target; }, 1100);
 }
 
 /* register */
@@ -155,7 +163,7 @@ $("#f-register").onsubmit = async e => {
       role: "citizen",
       createdAt: serverTimestamp(),
     });
-    done(name);
+    done(name, email);
   } catch (err) {
     formErr("e-r", friendlyAuthError(err));
     busy(e.target, false, "Create account");
@@ -173,7 +181,7 @@ $("#f-login").onsubmit = async e => {
   busy(e.target, true);
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pw);
-    done(cred.user.displayName || cred.user.email);
+    done(cred.user.displayName || cred.user.email, cred.user.email || email);
   } catch (err) {
     formErr("e-l", friendlyAuthError(err));
     busy(e.target, false, "Log in");
@@ -188,7 +196,7 @@ onAuthStateChanged(auth, cur => {
     const s = $("#signed");
     s.hidden = false;
     s.className = "signed";
-    s.innerHTML = '<h1>Hi, ' + esc(firstName) + '</h1><p class="lede">You’re already logged in.</p><a class="btn btn-primary" href="' + dest() + '">Continue</a><button class="btn" id="lo">Log out</button>';
+    s.innerHTML = '<h1>Hi, ' + esc(firstName) + '</h1><p class="lede">You’re already logged in.</p><a class="btn btn-primary" href="' + dest(cur.email) + '">Continue</a><button class="btn" id="lo">Log out</button>';
     $("#lo").onclick = async () => {
       await signOut(auth);
       location.reload();
